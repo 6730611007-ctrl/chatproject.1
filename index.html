@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BKT Messenger 💬</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #4361ee; --bg: #f0f2f5; --white: #ffffff; }
+        body { font-family: 'Sarabun', sans-serif; background-color: var(--bg); margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        .chat-container { width: 95%; max-width: 500px; height: 85vh; background: var(--white); border-radius: 15px; box-shadow: 0 8px 30px rgba(0,0,0,0.1); display: flex; flex-direction: column; overflow: hidden; }
+        .chat-header { background: var(--primary); color: white; padding: 15px; text-align: center; font-weight: 600; position: relative; }
+        .logout-btn { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: white; text-decoration: none; font-size: 0.7rem; background: rgba(255,255,255,0.2); padding: 5px 10px; border-radius: 5px; }
+        #chat-box { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; background: #fafafa; }
+        
+        .msg { max-width: 85%; padding: 8px 12px; border-radius: 12px; font-size: 0.9rem; position: relative; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .msg.user { align-self: flex-end; background: var(--primary); color: white; border-bottom-right-radius: 2px; }
+        .msg.other { align-self: flex-start; background: #e4e6eb; color: #1c1e21; border-bottom-left-radius: 2px; }
+        .msg.bot { align-self: center; background: #fff3cd; color: #856404; font-style: italic; border: 1px solid #ffeeba; text-align: center; }
+        .sender-name { font-size: 0.7rem; font-weight: bold; margin-bottom: 3px; display: block; opacity: 0.8; }
+        
+        /* สไตล์สำหรับปุ่มลบข้อความ */
+        .del-btn { display: block; text-align: right; font-size: 0.7rem; margin-top: 5px; cursor: pointer; color: #ffcccc; text-decoration: underline; }
+        .del-btn:hover { color: #ffffff; }
+
+        .input-area { padding: 15px; border-top: 1px solid #ddd; background: white; }
+        .input-row { display: flex; gap: 8px; }
+        input[type="text"] { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 20px; outline: none; }
+        button { background: var(--primary); color: white; border: none; padding: 8px 18px; border-radius: 20px; cursor: pointer; font-weight: 600; }
+        .file-btn { display: block; text-align: center; margin-top: 8px; font-size: 0.8rem; color: #666; cursor: pointer; text-decoration: underline; }
+    </style>
+</head>
+<body>
+
+<div class="chat-container">
+    <div class="chat-header">
+        BKT Messenger 💬
+        <a href="/logout" class="logout-btn">ออกจากระบบ</a>
+    </div>
+    
+    <div style="padding: 8px; background: #fff; border-bottom: 1px solid #eee; text-align: center; font-size: 0.8rem; color: #888;">
+        คุณกำลังคุยในชื่อ: <strong>{{ username }}</strong>
+    </div>
+
+    <div id="chat-box"></div>
+
+    <div class="input-area">
+        <div class="input-row">
+            <input type="text" id="message" placeholder="พิมพ์ข้อความที่นี่..." autocomplete="off">
+            <button onclick="sendMessage()">ส่ง</button>
+        </div>
+        <label for="file-input" class="file-btn">📎 แชร์ไฟล์ให้เพื่อนในห้อง</label>
+        <input type="file" id="file-input" style="display:none;" onchange="sendFile()">
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+<script>
+    const socket = io();
+    const chatBox = document.getElementById('chat-box');
+    const currentUser = "{{ username }}";
+
+    function appendMessage(data) {
+        const div = document.createElement('div');
+        div.id = `msg-${data.id}`;
+        
+        const isMe = data.username === currentUser;
+        const isBot = data.username === 'Chatbot 🤖';
+        
+        div.className = `msg ${isBot ? 'bot' : (isMe ? 'user' : 'other')}`;
+        
+        let content = `<span class="sender-name">${data.username}</span>`;
+        
+        if (data.type === 'file') {
+            const fileName = data.message;
+            const fileUrl = data.file_url;
+            const extension = fileName.split('.').pop().toLowerCase();
+            
+            const imageTypes = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+            const videoTypes = ['mp3', 'mp4', 'webm', 'ogg', 'mkv', 'mov']; // เพิ่มประเภทไฟล์วิดีโอ
+            
+            if (imageTypes.includes(extension)) {
+                // กรณีเป็นรูปภาพ
+                content += `
+                    <div class="file-preview">
+                        <a href="${fileUrl}" target="_blank">
+                            <img src="${fileUrl}" alt="${fileName}" style="max-width: 100%; border-radius: 8px; margin-top: 5px; cursor: zoom-in;">
+                        </a>
+                        <div style="font-size: 0.7rem; margin-top: 2px; opacity: 0.8;">🖼️ ${fileName}</div>
+                    </div>`;
+            } else if (videoTypes.includes(extension)) {
+                // กรณีเป็นวิดีโอ: ใช้แท็ก <video> เพื่อให้กดเล่นในแชทได้เลย
+                content += `
+                    <div class="file-preview" style="margin-top: 5px;">
+                        <video controls style="max-width: 100%; border-radius: 8px; background: #000;">
+                            <source src="${fileUrl}" type="video/${extension === 'webm' ? 'webm' : extension === 'ogg' ? 'ogg' : 'mp4'}">
+                            เบราว์เซอร์ของคุณไม่รองรับการเล่นวิดีโอนี้
+                        </video>
+                        <div style="font-size: 0.7rem; margin-top: 2px; opacity: 0.8;">🎥 ${fileName} <a href="${fileUrl}" download style="color: inherit; text-decoration: underline;">(ดาวน์โหลด)</a></div>
+                    </div>`;
+            } else {
+                // กรณีเป็นไฟล์อื่นๆ (PDF, Doc, ฯลฯ)
+                content += `
+                    <div class="file-box" style="background: rgba(0,0,0,0.05); padding: 10px; border-radius: 8px; margin-top: 5px; display: flex; align-items: center; gap: 10px;">
+                        <span style="font-size: 1.5rem;">📄</span>
+                        <div style="overflow: hidden; text-overflow: ellipsis;">
+                            <a href="${fileUrl}" target="_blank" style="color: inherit; font-weight: bold; text-decoration: underline;">${fileName}</a>
+                        </div>
+                    </div>`;
+            }
+        } else {
+            content += data.message;
+        }
+
+        if (isMe) {
+            content += `<span class="del-btn" onclick="deleteMessage('${data.id}')">ยกเลิกข้อความ</span>`;
+        }
+        
+        div.innerHTML = content;
+        chatBox.appendChild(div);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    socket.on('load_history', function(history) {
+        chatBox.innerHTML = '';
+        history.forEach(data => appendMessage(data));
+
+        // --- ส่วนที่เพิ่ม: แจ้งเตือนเมื่อเข้ามาในห้องแชทครั้งแรก ---
+        // ใช้ sessionStorage เพื่อให้บอททักทายแค่ตอนล็อกอินเข้ามาใหม่ๆ เท่านั้น 
+        // จะได้ไม่ทักทายซ้ำเวลาแค่กด Refresh หน้าจอ
+        if (!sessionStorage.getItem('hasJoined')) {
+            socket.emit('user_joined', { username: currentUser });
+            sessionStorage.setItem('hasJoined', 'true');
+        }
+    });
+
+    socket.on('receive_message', function(data) {
+        appendMessage(data);
+    });
+
+    function sendMessage() {
+        const inp = document.getElementById('message');
+        if (!inp.value.trim()) return;
+        socket.emit('send_message', { username: currentUser, message: inp.value, type: 'text' });
+        inp.value = '';
+    }
+
+    async function sendFile() {
+        const fileInput = document.getElementById('file-input');
+        const file = fileInput.files[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+            const response = await fetch('/upload', { method: 'POST', body: formData });
+            const data = await response.json();
+
+            if (response.ok) {
+                socket.emit('send_file', {
+                    username: currentUser,
+                    message: data.filename,
+                    file_url: data.file_url,
+                    type: 'file'
+                });
+            } else {
+                alert('เกิดข้อผิดพลาด: ' + data.error);
+            }
+        } catch (error) {
+            console.error('Upload Error:', error);
+            alert('ไม่สามารถอัปโหลดไฟล์ได้');
+        }
+        fileInput.value = '';
+    }
+
+    // --- ส่วนที่เพิ่ม: ฟังก์ชันขอลบข้อความ ---
+    function deleteMessage(msgId) {
+        if (confirm("ต้องการยกเลิกข้อความนี้สำหรับทุกคนใช่หรือไม่?")) {
+            socket.emit('delete_message', { id: msgId });
+        }
+    }
+
+    // --- ส่วนที่เพิ่ม: รับคำสั่งจาก Server เพื่อซ่อนข้อความที่ถูกลบ ---
+    socket.on('message_deleted', function(data) {
+        const msgElement = document.getElementById(`msg-${data.id}`);
+        if (msgElement) {
+            // เปลี่ยนหน้าตาให้ดูเหมือนโดนลบไปแล้ว (สไตล์คล้ายๆ LINE)
+            msgElement.className = 'msg bot'; // ใช้ style สีเทา/เหลืองอ่อน
+            msgElement.style.background = '#f2f2f2';
+            msgElement.style.color = '#999';
+            msgElement.style.border = '1px dashed #ccc';
+            msgElement.innerHTML = `<span style="font-style:italic;"></span>`;
+        }
+    });
+
+    document.getElementById("message").addEventListener("keypress", (e) => { if(e.key === "Enter") sendMessage(); });
+</script>
+</body>
+</html>
