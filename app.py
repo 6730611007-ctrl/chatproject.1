@@ -51,7 +51,7 @@ def chatbot_response(msg):
     elif 'ทำอะไรได้บ้าง' in msg:
         return "ผมช่วยบันทึกประวัติแชท ตอบคำถามพื้นฐาน และแสดงไฟล์ที่ส่งได้ครับ!"
     
-    elif 'เวลา' in msg:
+    elif 'เวลา' in msg or 'time' in msg:
         import datetime
         return f"ขณะนี้เวลา {datetime.datetime.now().strftime('%H:%M:%S')} ครับ"
         
