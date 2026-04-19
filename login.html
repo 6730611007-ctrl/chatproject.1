@@ -2,17 +2,104 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Login - BKT Messenger 💬</title>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Sarabun', sans-serif; background-color: #f0f2f5; margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; }
-        .login-card { background: white; padding: 40px; border-radius: 15px; box-shadow: 0 8px 30px rgba(0,0,0,0.1); text-align: center; width: 90%; max-width: 400px; }
-        h2 { color: #4361ee; margin-bottom: 10px; }
-        p { color: #666; font-size: 0.9rem; margin-bottom: 25px; }
-        input { width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; margin-bottom: 20px; box-sizing: border-box; font-size: 1rem; outline: none; }
-        button { width: 100%; padding: 12px; background: #4361ee; color: white; border: none; border-radius: 10px; cursor: pointer; font-size: 1rem; font-weight: 600; }
-        button:hover { background: #3046bc; }
+        /* กำหนด Box Sizing ทั่วทั้งเอกสาร */
+        * {
+            box-sizing: border-box;
+        }
+
+        body { 
+            font-family: 'Sarabun', sans-serif; 
+            background-color: #f0f2f5; 
+            margin: 0; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            /* ✅ แก้ไข: ใช้ dynamic viewport height เพื่อรองรับมือถือได้สมบูรณ์ */
+            min-height: 100vh; 
+            min-height: 100dvh; 
+            padding: 20px; /* เพิ่ม padding รอบ body กันขอบชนจอในมือถือขนาดเล็ก */
+        }
+
+        .login-card { 
+            background: white; 
+            /* ✅ แก้ไข: ปรับ padding ให้สมดุลขึ้น */
+            padding: 40px 30px; 
+            border-radius: 15px; 
+            box-shadow: 0 8px 30px rgba(0,0,0,0.1); 
+            text-align: center; 
+            /* ✅ แก้ไข: ปรับความกว้างให้ Responsive */
+            width: 100%; 
+            max-width: 400px; /* ความกว้างสูงสุดบนจอใหญ่ */
+        }
+
+        h2 { 
+            color: #4361ee; 
+            margin-top: 0; /* ลบ margin บนสุดออก */
+            margin-bottom: 10px; 
+            font-size: 1.8rem;
+        }
+
+        p { 
+            color: #666; 
+            font-size: 1rem; 
+            margin-bottom: 30px; 
+            line-height: 1.5;
+        }
+
+        input { 
+            width: 100%; 
+            /* ✅ แก้ไข: เพิ่ม padding ให้ช่องกรอกใหญ่ขึ้น กดง่ายขึ้น */
+            padding: 14px 16px; 
+            border: 1px solid #ddd; 
+            border-radius: 10px; 
+            margin-bottom: 25px; 
+            font-size: 1rem; 
+            outline: none; 
+            font-family: inherit; /* ให้ใช้ Font Sarabun */
+            transition: border-color 0.2s;
+        }
+        
+        input:focus {
+            border-color: #4361ee;
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+        }
+
+        button { 
+            width: 100%; 
+            /* ✅ แก้ไข: เพิ่ม padding ให้ปุ่มใหญ่ขึ้น กดง่ายขึ้น */
+            padding: 14px; 
+            background: #4361ee; 
+            color: white; 
+            border: none; 
+            border-radius: 10px; 
+            cursor: pointer; 
+            font-size: 1.1rem; /* ปรับขนาดอักษรปุ่มให้เด่นชัด */
+            font-weight: 600; 
+            font-family: inherit;
+            transition: background 0.2s;
+        }
+
+        button:hover { 
+            background: #3046bc; 
+        }
+
+        /* 📱 Tablet & Mobile Responsive */
+        @media (max-width: 480px) {
+            .login-card {
+                padding: 30px 20px; /* ลด padding ด้านในกล่องเล็กน้อย */
+            }
+            h2 {
+                font-size: 1.6rem;
+            }
+            p {
+                font-size: 0.95rem;
+                margin-bottom: 25px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -20,7 +107,7 @@
         <h2>ยินดีต้อนรับ 💬</h2>
         <p>กรุณาตั้งชื่อเล่นเพื่อเข้าสู่ห้องสนทนา</p>
         <form action="/login" method="POST">
-            <input type="text" name="username" placeholder="ชื่อเล่นของคุณ..." required>
+            <input type="text" name="username" placeholder="ชื่อเล่นของคุณ..." required autocomplete="off">
             <button type="submit">เข้าสู่ระบบ</button>
         </form>
     </div>
