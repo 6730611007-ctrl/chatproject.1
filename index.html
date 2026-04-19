@@ -2,34 +2,95 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"> 
     <title>BKT Messenger 💬</title>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
-        :root { --primary: #4361ee; --bg: #ffffff; --white: #ffffff; }
-        body { font-family: 'Sarabun', sans-serif; background-color: var(--bg); margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; }
-        .chat-container { width: 95%; max-width: 500px; height: 85vh; background: var(--white); border-radius: 15px; box-shadow: 0 8px 30px rgba(0,0,0,0.1); display: flex; flex-direction: column; overflow: hidden; }
+        :root { --primary: #4361ee; --bg: #f4f7f6; --white: #ffffff; }
+        body { 
+            font-family: 'Sarabun', sans-serif; 
+            background-color: var(--bg); 
+            margin: 0; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            min-height: 100vh; 
+        }
+        
+        /* 💻 สไตล์เริ่มต้นสำหรับ คอมพิวเตอร์ และ โน้ตบุ๊ก (Desktop & Laptop) */
+        .chat-container { 
+            width: 100%; 
+            max-width: 900px; /* ปรับให้กว้างขึ้นสำหรับคอมพิวเตอร์ */
+            height: 85vh; 
+            background: var(--white); 
+            border-radius: 15px; 
+            box-shadow: 0 8px 30px rgba(0,0,0,0.1); 
+            display: flex; 
+            flex-direction: column; 
+            overflow: hidden; 
+        }
+        
         .chat-header { background: var(--primary); color: white; padding: 15px; text-align: center; font-weight: 600; position: relative; }
-        .logout-btn { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: white; text-decoration: none; font-size: 0.7rem; background: rgba(255,255,255,0.2); padding: 5px 10px; border-radius: 5px; }
+        .logout-btn { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: white; text-decoration: none; font-size: 0.8rem; background: rgba(255,255,255,0.2); padding: 5px 10px; border-radius: 5px; transition: background 0.2s;}
+        .logout-btn:hover { background: rgba(255,255,255,0.4); }
+        
         #chat-box { flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; background: #fafafa; }
         
-        .msg { max-width: 85%; padding: 8px 12px; border-radius: 12px; font-size: 0.9rem; position: relative; animation: fadeIn 0.3s ease; }
+        .msg { max-width: 70%; padding: 8px 12px; border-radius: 12px; font-size: 0.95rem; position: relative; animation: fadeIn 0.3s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
         
         .msg.user { align-self: flex-end; background: var(--primary); color: white; border-bottom-right-radius: 2px; }
         .msg.other { align-self: flex-start; background: #e4e6eb; color: #1c1e21; border-bottom-left-radius: 2px; }
-        .msg.bot { align-self: center; background: #fff3cd; color: #856404; font-style: italic; border: 1px solid #ffeeba; text-align: center; }
-        .sender-name { font-size: 0.7rem; font-weight: bold; margin-bottom: 3px; display: block; opacity: 0.8; }
+        .msg.bot { align-self: center; background: #fff3cd; color: #856404; font-style: italic; border: 1px solid #ffeeba; text-align: center; max-width: 80%; }
+        .sender-name { font-size: 0.75rem; font-weight: bold; margin-bottom: 3px; display: block; opacity: 0.8; }
         
-        /* สไตล์สำหรับปุ่มลบข้อความ */
-        .del-btn { display: block; text-align: right; font-size: 0.7rem; margin-top: 5px; cursor: pointer; color: #ffcccc; text-decoration: underline; }
+        .del-btn { display: block; text-align: right; font-size: 0.75rem; margin-top: 5px; cursor: pointer; color: #ffcccc; text-decoration: underline; }
         .del-btn:hover { color: #ffffff; }
 
         .input-area { padding: 15px; border-top: 1px solid #ddd; background: white; }
         .input-row { display: flex; gap: 8px; }
-        input[type="text"] { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 20px; outline: none; }
-        button { background: var(--primary); color: white; border: none; padding: 8px 18px; border-radius: 20px; cursor: pointer; font-weight: 600; }
-        .file-btn { display: block; text-align: center; margin-top: 8px; font-size: 0.8rem; color: #666; cursor: pointer; text-decoration: underline; }
+        input[type="text"] { flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 20px; outline: none; font-family: inherit; font-size: 1rem; }
+        button { background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 20px; cursor: pointer; font-weight: 600; font-family: inherit; font-size: 1rem; transition: background 0.2s;}
+        button:hover { background: #324ed4; }
+        .file-btn { display: block; text-align: center; margin-top: 10px; font-size: 0.85rem; color: #666; cursor: pointer; text-decoration: underline; }
+
+        /* 📱 แท็บเล็ต และ ไอแพด (Tablet & iPad) */
+        @media (max-width: 900px) {
+            .chat-container {
+                max-width: 95%;
+                height: 90vh;
+            }
+            .msg { max-width: 80%; }
+        }
+
+        /* 📱 โทรศัพท์มือถือ (Mobile Phones) */
+        @media (max-width: 600px) {
+            body {
+                align-items: flex-start; /* ให้จอเริ่มจากขอบบนสุด */
+                background-color: var(--white);
+            }
+            .chat-container {
+                width: 100%;
+                max-width: 100%;
+                height: 100dvh; /* ใช้ 100dvh เพื่อไม่ให้โดน Address bar มือถือบัง */
+                border-radius: 0; /* ลบมุมโค้งออกให้เต็มจอ */
+                box-shadow: none;
+            }
+            .msg {
+                max-width: 85%; /* ข้อความกว้างขึ้นในจอมือถือ */
+                font-size: 0.9rem;
+            }
+            .chat-header {
+                padding: 12px;
+                font-size: 1.1rem;
+            }
+            .input-area {
+                padding: 10px;
+            }
+            input[type="text"], button {
+                padding: 10px 15px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -134,7 +195,6 @@
         appendMessage(data);
     });
 
-    // --- รวมฟังก์ชัน sendMessage ให้เหลืออันเดียว และลบช่องพิมพ์ชัวร์ๆ ---
     function sendMessage() {
         const messageInput = document.getElementById('message');
         const textToSend = messageInput.value; 
@@ -143,20 +203,15 @@
             return; 
         }
 
-        // ล้างช่องพิมพ์ทันที
         messageInput.value = ''; 
-
-        // บันทึกชื่อลงเครื่อง
         localStorage.setItem('chat_username', currentUser);
         
-        // ส่งข้อความไป Server
         socket.emit('send_message', {
             username: currentUser,
             message: textToSend,
             type: 'text'
         });
         
-        // ดึงเมาส์กลับมาที่ช่องพิมพ์ให้พร้อมพิมพ์ต่อทันที
         messageInput.focus(); 
     }
 
@@ -202,17 +257,10 @@
             msgElement.style.background = '#f2f2f2';
             msgElement.style.color = '#999';
             msgElement.style.border = '1px dashed #ccc';
-            msgElement.innerHTML = `<span style="font-style:italic;"></span>`;
+            msgElement.innerHTML = `<span style="font-style:italic;">🚫 ข้อความนี้ถูกยกเลิกแล้ว</span>`;
         }
     });
 
-    // ตรวจสอบว่าเคย Login ไว้หรือยัง
-    const savedUser = localStorage.getItem('chat_username');
-    if (savedUser) {
-        // (เผื่อไว้สำหรับอนาคต)
-    }
-
-    // กด Enter เพื่อส่งข้อความ
     document.getElementById("message").addEventListener("keypress", (e) => { 
         if(e.key === "Enter") sendMessage(); 
     });
