@@ -6,7 +6,7 @@
     <title>BKT Messenger 💬</title>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
-        :root { --primary: #4361ee; --bg: #000000; --white: #ffffff; }
+        :root { --primary: #4361ee; --bg: #ffffff; --white: #ffffff; }
         body { font-family: 'Sarabun', sans-serif; background-color: var(--bg); margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; }
         .chat-container { width: 95%; max-width: 500px; height: 85vh; background: var(--white); border-radius: 15px; box-shadow: 0 8px 30px rgba(0,0,0,0.1); display: flex; flex-direction: column; overflow: hidden; }
         .chat-header { background: var(--primary); color: white; padding: 15px; text-align: center; font-weight: 600; position: relative; }
@@ -79,10 +79,9 @@
             const extension = fileName.split('.').pop().toLowerCase();
             
             const imageTypes = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
-            const videoTypes = ['mp3', 'mp4', 'webm', 'ogg', 'mkv', 'mov']; // เพิ่มประเภทไฟล์วิดีโอ
+            const videoTypes = ['mp3', 'mp4', 'webm', 'ogg', 'mkv', 'mov']; 
             
             if (imageTypes.includes(extension)) {
-                // กรณีเป็นรูปภาพ
                 content += `
                     <div class="file-preview">
                         <a href="${fileUrl}" target="_blank">
@@ -91,7 +90,6 @@
                         <div style="font-size: 0.7rem; margin-top: 2px; opacity: 0.8;">🖼️ ${fileName}</div>
                     </div>`;
             } else if (videoTypes.includes(extension)) {
-                // กรณีเป็นวิดีโอ: ใช้แท็ก <video> เพื่อให้กดเล่นในแชทได้เลย
                 content += `
                     <div class="file-preview" style="margin-top: 5px;">
                         <video controls style="max-width: 100%; border-radius: 8px; background: #000;">
@@ -101,7 +99,6 @@
                         <div style="font-size: 0.7rem; margin-top: 2px; opacity: 0.8;">🎥 ${fileName} <a href="${fileUrl}" download style="color: inherit; text-decoration: underline;">(ดาวน์โหลด)</a></div>
                     </div>`;
             } else {
-                // กรณีเป็นไฟล์อื่นๆ (PDF, Doc, ฯลฯ)
                 content += `
                     <div class="file-box" style="background: rgba(0,0,0,0.05); padding: 10px; border-radius: 8px; margin-top: 5px; display: flex; align-items: center; gap: 10px;">
                         <span style="font-size: 1.5rem;">📄</span>
@@ -127,9 +124,6 @@
         chatBox.innerHTML = '';
         history.forEach(data => appendMessage(data));
 
-        // --- ส่วนที่เพิ่ม: แจ้งเตือนเมื่อเข้ามาในห้องแชทครั้งแรก ---
-        // ใช้ sessionStorage เพื่อให้บอททักทายแค่ตอนล็อกอินเข้ามาใหม่ๆ เท่านั้น 
-        // จะได้ไม่ทักทายซ้ำเวลาแค่กด Refresh หน้าจอ
         if (!sessionStorage.getItem('hasJoined')) {
             socket.emit('user_joined', { username: currentUser });
             sessionStorage.setItem('hasJoined', 'true');
@@ -140,11 +134,30 @@
         appendMessage(data);
     });
 
+    // --- รวมฟังก์ชัน sendMessage ให้เหลืออันเดียว และลบช่องพิมพ์ชัวร์ๆ ---
     function sendMessage() {
-        const inp = document.getElementById('message');
-        if (!inp.value.trim()) return;
-        socket.emit('send_message', { username: currentUser, message: inp.value, type: 'text' });
-        inp.value = '';
+        const messageInput = document.getElementById('message');
+        const textToSend = messageInput.value; 
+
+        if (textToSend.trim() === '') {
+            return; 
+        }
+
+        // ล้างช่องพิมพ์ทันที
+        messageInput.value = ''; 
+
+        // บันทึกชื่อลงเครื่อง
+        localStorage.setItem('chat_username', currentUser);
+        
+        // ส่งข้อความไป Server
+        socket.emit('send_message', {
+            username: currentUser,
+            message: textToSend,
+            type: 'text'
+        });
+        
+        // ดึงเมาส์กลับมาที่ช่องพิมพ์ให้พร้อมพิมพ์ต่อทันที
+        messageInput.focus(); 
     }
 
     async function sendFile() {
@@ -176,19 +189,16 @@
         fileInput.value = '';
     }
 
-    // --- ส่วนที่เพิ่ม: ฟังก์ชันขอลบข้อความ ---
     function deleteMessage(msgId) {
         if (confirm("ต้องการยกเลิกข้อความนี้สำหรับทุกคนใช่หรือไม่?")) {
             socket.emit('delete_message', { id: msgId });
         }
     }
 
-    // --- ส่วนที่เพิ่ม: รับคำสั่งจาก Server เพื่อซ่อนข้อความที่ถูกลบ ---
     socket.on('message_deleted', function(data) {
         const msgElement = document.getElementById(`msg-${data.id}`);
         if (msgElement) {
-            // เปลี่ยนหน้าตาให้ดูเหมือนโดนลบไปแล้ว (สไตล์คล้ายๆ LINE)
-            msgElement.className = 'msg bot'; // ใช้ style สีเทา/เหลืองอ่อน
+            msgElement.className = 'msg bot'; 
             msgElement.style.background = '#f2f2f2';
             msgElement.style.color = '#999';
             msgElement.style.border = '1px dashed #ccc';
@@ -196,7 +206,17 @@
         }
     });
 
-    document.getElementById("message").addEventListener("keypress", (e) => { if(e.key === "Enter") sendMessage(); });
+    // ตรวจสอบว่าเคย Login ไว้หรือยัง
+    const savedUser = localStorage.getItem('chat_username');
+    if (savedUser) {
+        // (เผื่อไว้สำหรับอนาคต)
+    }
+
+    // กด Enter เพื่อส่งข้อความ
+    document.getElementById("message").addEventListener("keypress", (e) => { 
+        if(e.key === "Enter") sendMessage(); 
+    });
+
 </script>
 </body>
-</html>ฟ
+</html>
